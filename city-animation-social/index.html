@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>City Animation Social</title>
+<style>
+/* ============================================================
+   City Animation Social — Video-Outro
+   Selbstenthaltend: keine externen Fonts, Bilder oder Skripte.
+   Texte anpassen: siehe CONFIG unten im <script>.
+   ============================================================ */
+
+:root{
+  --night-0:#05060f;
+  --night-1:#0b1030;
+  --night-2:#1b1c4b;
+  --dusk-1:#4b2a63;
+  --dusk-2:#8a3d5c;
+  --dusk-3:#d1633f;
+  --amber:#ffc46b;
+  --amber-soft:#ffdca8;
+  --gold:#e8b45c;
+  --paper:#f4ece0;
+  --ink:#0a0b16;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#08090f;
+  color:var(--paper);
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+
+/* ---------- Bühne ---------- */
+#viewport{
+  position:relative;
+  flex:1 1 auto;
+  width:100%;
+  display:flex;align-items:center;justify-content:center;
+  min-height:0;
+}
+#stage{
+  position:relative;
+  flex:0 0 auto;            /* nicht vom Flex-Container stauchen lassen */
+  overflow:hidden;
+  background:var(--night-0);
+  transform-origin:center center;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+}
+body.clean{background:#000}
+body.clean #stage{box-shadow:none}
+body.clean #ui{display:none}
+
+/* ---------- Himmel ---------- */
+.sky{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(120% 70% at 50% 100%, var(--dusk-3) 0%, var(--dusk-2) 18%, var(--dusk-1) 38%, var(--night-2) 62%, var(--night-1) 80%, var(--night-0) 100%);
+  opacity:0;
+}
+.play .sky{animation:skyIn 1.6s cubic-bezier(.22,.61,.36,1) both}
+@keyframes skyIn{from{opacity:0;transform:scale(1.06)}to{opacity:1;transform:scale(1)}}
+
+.stars{position:absolute;inset:0 0 38% 0;opacity:0}
+.play .stars{animation:fadeIn 2.2s ease both .3s}
+.star{
+  position:absolute;border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 calc(var(--k)*6px) rgba(255,255,255,.55);
+}
+.play .star{animation:twinkle var(--tw) ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:.15;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+
+/* Horizontglühen */
+.glow{
+  position:absolute;left:-10%;right:-10%;
+  height:calc(var(--k)*520px);
+  bottom:calc(var(--skyH) - var(--k)*180px);
+  background:radial-gradient(60% 100% at 50% 100%, rgba(255,180,90,.55), rgba(255,120,60,.18) 45%, transparent 72%);
+  filter:blur(calc(var(--k)*14px));
+  opacity:0;
+}
+.play .glow{animation:fadeIn 2s ease both .5s}
+
+/* ---------- Skyline ---------- */
+.layer{position:absolute;left:0;right:0;bottom:0;width:100%;display:block}
+#far{height:calc(var(--skyH) * 0.82);opacity:0}
+#near{height:var(--skyH);opacity:0}
+.play #far{animation:riseIn 1.5s cubic-bezier(.16,.84,.32,1) both .55s}
+.play #near{animation:riseIn 1.5s cubic-bezier(.16,.84,.32,1) both .75s}
+@keyframes riseIn{from{opacity:0;transform:translateY(14%)}to{opacity:1;transform:translateY(0)}}
+
+.win{opacity:0}
+.play .win{animation:winOn .5s ease-out both}
+@keyframes winOn{from{opacity:0}to{opacity:.92}}
+
+.beacon{opacity:0}
+.play .beacon{animation:beacon 2.4s ease-in-out infinite both 1.6s}
+@keyframes beacon{0%,70%{opacity:0}80%{opacity:1}100%{opacity:0}}
+
+/* Boden / Sockel */
+.ground{
+  position:absolute;left:0;right:0;bottom:0;height:calc(var(--k)*90px);
+  background:linear-gradient(to bottom, transparent, rgba(0,0,0,.85));
+  opacity:0;
+}
+.play .ground{animation:fadeIn 1.2s ease both .9s}
+
+/* ---------- Inhalt ---------- */
+.content{
+  position:absolute;left:0;right:0;
+  top:var(--cc);transform:translateY(-50%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:calc(var(--k)*18px);
+  padding:0 calc(var(--k)*70px);
+  text-align:center;
+}
+
+.mark{
+  width:calc(var(--k)*104px);height:calc(var(--k)*104px);
+  opacity:0;
+}
+.play .mark{animation:markIn 1.1s cubic-bezier(.2,.8,.25,1) both 1.75s}
+@keyframes markIn{
+  from{opacity:0;transform:translateY(calc(var(--k)*18px)) scale(.82) rotate(-6deg)}
+  to{opacity:1;transform:none}
+}
+
+.title{
+  font-size:calc(var(--k)*104px);
+  line-height:1.02;
+  letter-spacing:calc(var(--k)*1.5px);
+  font-weight:600;
+  color:var(--paper);
+  text-shadow:0 calc(var(--k)*10px) calc(var(--k)*40px) rgba(0,0,0,.55);
+  opacity:0;
+}
+.play .title{animation:titleIn 1.2s cubic-bezier(.2,.75,.25,1) both 2.05s}
+@keyframes titleIn{
+  from{opacity:0;transform:translateY(calc(var(--k)*26px));filter:blur(calc(var(--k)*8px))}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+
+.rule{
+  height:calc(var(--k)*2px);width:0;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin:calc(var(--k)*4px) 0;
+}
+.play .rule{animation:ruleIn 1.1s cubic-bezier(.22,.61,.36,1) both 2.6s}
+@keyframes ruleIn{from{width:0;opacity:0}to{width:calc(var(--k)*440px);opacity:1}}
+
+.sub{
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:calc(var(--k)*30px);
+  letter-spacing:calc(var(--k)*4px);
+  text-transform:uppercase;
+  color:var(--amber-soft);
+  opacity:0;
+}
+.play .sub{animation:fadeUp 1s ease both 2.95s}
+
+.socials{
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:calc(var(--k)*14px) calc(var(--k)*26px);
+  margin-top:calc(var(--k)*14px);
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:calc(var(--k)*24px);
+  letter-spacing:calc(var(--k)*1px);
+  color:rgba(244,236,224,.86);
+}
+.social{display:flex;align-items:center;gap:calc(var(--k)*9px);opacity:0}
+.play .social{animation:fadeUp .8s ease both var(--sd)}
+.social svg{width:calc(var(--k)*26px);height:calc(var(--k)*26px);fill:var(--amber)}
+
+.cta{
+  margin-top:calc(var(--k)*22px);
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:calc(var(--k)*26px);
+  letter-spacing:calc(var(--k)*3px);
+  text-transform:uppercase;
+  padding:calc(var(--k)*14px) calc(var(--k)*34px);
+  border:calc(var(--k)*2px) solid var(--gold);
+  border-radius:999px;
+  color:var(--gold);
+  opacity:0;
+}
+.play .cta{animation:ctaIn 1s cubic-bezier(.2,.8,.25,1) both 4.15s, pulse 2.2s ease-in-out infinite 5.15s}
+@keyframes ctaIn{
+  from{opacity:0;transform:translateY(calc(var(--k)*16px)) scale(.94)}
+  to{opacity:1;transform:none}
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(232,180,92,.0)}
+  50%{box-shadow:0 0 0 calc(var(--k)*10px) rgba(232,180,92,.06)}
+}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(calc(var(--k)*14px))}
+  to{opacity:1;transform:none}
+}
+
+.vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%);
+}
+.grain{
+  position:absolute;inset:-50%;pointer-events:none;opacity:.05;
+  background-image:radial-gradient(rgba(255,255,255,.9) .5px, transparent .5px);
+  background-size:3px 3px;
+}
+.play .grain{animation:grain 1.1s steps(6) infinite}
+@keyframes grain{
+  0%{transform:translate(0,0)}20%{transform:translate(-2%,1%)}40%{transform:translate(1%,-2%)}
+  60%{transform:translate(-1%,2%)}80%{transform:translate(2%,1%)}100%{transform:translate(0,0)}
+}
+
+.fadeout{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
+.play.withFade .fadeout{animation:outro .9s ease-in both var(--fadeAt)}
+@keyframes outro{from{opacity:0}to{opacity:1}}
+
+/* ---------- Bedienleiste ---------- */
+#ui{
+  flex:0 0 auto;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:10px;padding:14px 16px;
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:13px;color:#9aa3b8;
+}
+#ui .group{display:flex;gap:6px;align-items:center;background:#12141d;border:1px solid #232739;border-radius:10px;padding:5px}
+#ui button{
+  font:inherit;color:#cfd6e6;background:transparent;border:0;border-radius:7px;
+  padding:7px 13px;cursor:pointer;transition:background .15s,color .15s;
+}
+#ui button:hover{background:#1e2231;color:#fff}
+#ui button[aria-pressed="true"]{background:var(--gold);color:#14161f;font-weight:600}
+#ui .hint{opacity:.65}
+#ui kbd{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+  background:#12141d;border:1px solid #232739;border-bottom-width:2px;
+  border-radius:5px;padding:2px 6px;color:#cfd6e6;
+}
+@media (prefers-reduced-motion:reduce){
+  .play *{animation-duration:.01ms !important;animation-iteration-count:1 !important}
+}
+</style>
+</head>
+<body>
+
+<div id="viewport"><div id="stage" class="stage"></div></div>
+
+<div id="ui">
+  <div class="group" role="group" aria-label="Format">
+    <button data-fmt="16:9" aria-pressed="true">16:9</button>
+    <button data-fmt="9:16" aria-pressed="false">9:16</button>
+    <button data-fmt="1:1"  aria-pressed="false">1:1</button>
+  </div>
+  <div class="group">
+    <button id="replay">▶ Neu abspielen</button>
+    <button id="loop" aria-pressed="false">Loop</button>
+    <button id="cleanBtn">Clean-Modus</button>
+  </div>
+  <span class="hint"><kbd>R</kbd> Replay · <kbd>C</kbd> Clean · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Format</span>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — hier alle Texte und Timings anpassen
+   ============================================================ */
+const CONFIG = {
+  title:    "History Books",
+  subtitle: "Geschichte, die bleibt",
+  socials: [
+    { icon: "yt", label: "@historybooks" },
+    { icon: "ig", label: "@historybooks" },
+    { icon: "web", label: "historybooks.de" }
+  ],
+  cta: "Abonnieren",
+  duration: 7000,   // Gesamtlänge in ms (inkl. Ausblendung)
+  fadeAt:   6.1,    // Sekunde, ab der schwarz ausgeblendet wird
+  seed:     20260907
+};
+
+const FORMATS = {
+  "16:9": { w:1920, h:1080, skyH:"42%", cc:"40%" },
+  "9:16": { w:1080, h:1920, skyH:"40%", cc:"44%" },
+  "1:1":  { w:1080, h:1080, skyH:"40%", cc:"41%" }
+};
+
+/* ---------- Hilfsfunktionen ---------- */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const esc = s => String(s).replace(/[&<>"']/g, c =>
+  ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+
+const ICONS = {
+  yt:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 12s0-3.9-.5-5.7a3 3 0 0 0-2.1-2.1C18.6 3.7 12 3.7 12 3.7s-6.6 0-8.4.5A3 3 0 0 0 1.5 6.3C1 8.1 1 12 1 12s0 3.9.5 5.7a3 3 0 0 0 2.1 2.1c1.8.5 8.4.5 8.4.5s6.6 0 8.4-.5a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6.2 3.5-6.2 3.5Z"/></svg>',
+  ig:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.3 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.3-2.2-.4a3.9 3.9 0 0 1-1.4-.9 3.9 3.9 0 0 1-.9-1.4c-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2Zm0 3.2A6.6 6.6 0 1 0 18.6 12 6.6 6.6 0 0 0 12 5.4Zm0 10.9A4.3 4.3 0 1 1 16.3 12 4.3 4.3 0 0 1 12 16.3Zm6.9-11.1a1.5 1.5 0 1 1-1.5-1.6 1.5 1.5 0 0 1 1.5 1.6Z"/></svg>',
+  tt:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 2h-3.1v13.6a2.6 2.6 0 1 1-2.2-2.6v-3.2a5.8 5.8 0 1 0 5.3 5.8V8.9a6.8 6.8 0 0 0 4 1.3V7a3.9 3.9 0 0 1-4-5Z"/></svg>',
+  web: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm6.9 6h-2.9a15.7 15.7 0 0 0-1.4-3.7A8 8 0 0 1 18.9 8ZM12 4.2A13.6 13.6 0 0 1 13.8 8h-3.6A13.6 13.6 0 0 1 12 4.2ZM4.3 14a7.9 7.9 0 0 1 0-4h3.3a17.6 17.6 0 0 0 0 4Zm.8 2h2.9a15.7 15.7 0 0 0 1.4 3.7A8 8 0 0 1 5.1 16Zm2.9-8H5.1a8 8 0 0 1 4.3-3.7A15.7 15.7 0 0 0 8 8Zm4 11.8A13.6 13.6 0 0 1 10.2 16h3.6A13.6 13.6 0 0 1 12 19.8ZM14.2 14H9.8a15.8 15.8 0 0 1 0-4h4.4a15.8 15.8 0 0 1 0 4Zm.4 5.7A15.7 15.7 0 0 0 16 16h2.9a8 8 0 0 1-4.3 3.7ZM16.4 14a17.6 17.6 0 0 0 0-4h3.3a7.9 7.9 0 0 1 0 4Z"/></svg>'
+};
+
+/* ---------- Skyline erzeugen ---------- */
+function skyline(w, h, rnd, o){
+  const parts = [];
+  let x = -30;
+  while (x < w + 30){
+    const bw = o.minW + rnd() * (o.maxW - o.minW);
+    const bh = o.minH + rnd() * (o.maxH - o.minH);
+    const y  = h - bh;
+    parts.push(`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${(bh+4).toFixed(1)}" fill="${o.fill}"/>`);
+
+    // Dachaufbau
+    if (rnd() > .55){
+      const aw = bw * (.18 + rnd() * .22), ax = x + (bw - aw) / 2;
+      parts.push(`<rect x="${ax.toFixed(1)}" y="${(y - bh*.09).toFixed(1)}" width="${aw.toFixed(1)}" height="${(bh*.1).toFixed(1)}" fill="${o.fill}"/>`);
+    }
+    // Antenne + Blinklicht
+    if (o.windows && rnd() > .78){
+      const ax = x + bw / 2, ah = 18 + rnd() * 42;
+      parts.push(`<rect x="${(ax-1.4).toFixed(1)}" y="${(y-ah).toFixed(1)}" width="2.8" height="${ah.toFixed(1)}" fill="${o.fill}"/>`);
+      parts.push(`<circle class="beacon" cx="${ax.toFixed(1)}" cy="${(y-ah-3).toFixed(1)}" r="3.4" fill="#ff6b57"/>`);
+    }
+    // Fenster
+    if (o.windows){
+      const gx = 11, gy = 15, pad = 8;
+      for (let wx = x + pad; wx < x + bw - pad - 5; wx += gx){
+        for (let wy = y + 14; wy < h - 12; wy += gy){
+          if (rnd() > .46) continue;
+          const lit = rnd();
+          const col = lit > .8 ? "#fff3d0" : lit > .4 ? "#ffc46b" : "#e8934a";
+          const d = (1.15 + rnd() * 1.5).toFixed(2);
+          parts.push(`<rect class="win" x="${wx.toFixed(1)}" y="${wy.toFixed(1)}" width="5" height="7" fill="${col}" style="animation-delay:${d}s"/>`);
+        }
+      }
+    }
+    x += bw + 2 + rnd() * 9;
+  }
+  return `<svg class="layer" id="${o.id}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${parts.join("")}</svg>`;
+}
+
+/* ---------- Bühne aufbauen ---------- */
+const stage = document.getElementById("stage");
+let fmt = "16:9", loopOn = false, timer = null;
+
+function build(){
+  const f = FORMATS[fmt];
+  const rnd = mulberry32(CONFIG.seed);
+  const k = Math.min(f.w, f.h) / 1080;
+
+  stage.style.setProperty("--k", k);
+  stage.style.setProperty("--skyH", f.skyH);
+  stage.style.setProperty("--cc", f.cc);
+  stage.style.setProperty("--fadeAt", CONFIG.fadeAt + "s");
+  stage.style.width  = f.w + "px";
+  stage.style.height = f.h + "px";
+
+  // Sterne
+  let stars = "";
+  for (let i = 0; i < 130; i++){
+    const s = (.9 + rnd() * 2.1) * k;
+    stars += `<i class="star" style="left:${(rnd()*100).toFixed(2)}%;top:${(rnd()*100).toFixed(2)}%;`
+           + `width:${s.toFixed(2)}px;height:${s.toFixed(2)}px;`
+           + `--tw:${(1.6+rnd()*3).toFixed(2)}s;animation-delay:${(rnd()*3).toFixed(2)}s"></i>`;
+  }
+
+  // viewBox-Höhe = tatsächliche Layout-Höhe, sonst verzerrt preserveAspectRatio="none"
+  const nearH = f.h * parseFloat(f.skyH) / 100;
+  const farH  = nearH * .82;
+  const far  = skyline(f.w, farH,  rnd, { id:"far",  fill:"#141a3f", minW:38, maxW:96,  minH:farH*.22,  maxH:farH*.72,  windows:false });
+  const near = skyline(f.w, nearH, rnd, { id:"near", fill:"#07091c", minW:52, maxW:132, minH:nearH*.32, maxH:nearH*.82, windows:true  });
+
+  const socials = CONFIG.socials.map((s, i) =>
+    `<span class="social" style="--sd:${(3.45 + i * .16).toFixed(2)}s">`
+    + (ICONS[s.icon] || ICONS.web) + esc(s.label) + `</span>`).join("");
+
+  stage.innerHTML = `
+    <div class="sky"></div>
+    <div class="stars">${stars}</div>
+    <div class="glow"></div>
+    ${far}
+    ${near}
+    <div class="ground"></div>
+    <div class="content">
+      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="46" fill="none" stroke="#e8b45c" stroke-width="2.5"/>
+        <path d="M22 34h22c4 0 6 2 6 5v29c0-3-2-5-6-5H22V34Z" fill="none" stroke="#f4ece0" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M78 34H56c-4 0-6 2-6 5v29c0-3 2-5 6-5h22V34Z" fill="none" stroke="#f4ece0" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M50 39v29" stroke="#e8b45c" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <h1 class="title">${esc(CONFIG.title)}</h1>
+      <div class="rule"></div>
+      <p class="sub">${esc(CONFIG.subtitle)}</p>
+      <div class="socials">${socials}</div>
+      <div class="cta">${esc(CONFIG.cta)}</div>
+    </div>
+    <div class="grain"></div>
+    <div class="vignette"></div>
+    <div class="fadeout"></div>
+  `;
+  fit();
+}
+
+/* ---------- Skalierung auf das Fenster ---------- */
+function fit(){
+  const f  = FORMATS[fmt];
+  const vp = document.getElementById("viewport").getBoundingClientRect();
+  const pad = document.body.classList.contains("clean") ? 0 : 24;
+  const s = Math.min((vp.width - pad) / f.w, (vp.height - pad) / f.h);
+  stage.style.transform = `scale(${s})`;
+}
+
+/* ---------- Abspielen ---------- */
+function play(){
+  clearTimeout(timer);
+  stage.classList.remove("play", "withFade");
+  void stage.offsetWidth;                 // Reflow erzwingen -> Animationen starten neu
+  stage.classList.add("play", "withFade");
+  if (loopOn) timer = setTimeout(play, CONFIG.duration);
+}
+
+/* ---------- Bedienung ---------- */
+document.querySelectorAll("[data-fmt]").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("[data-fmt]").forEach(o =>
+      o.setAttribute("aria-pressed", String(o === b)));
+    fmt = b.dataset.fmt;
+    build();
+    play();
+  });
+});
+document.getElementById("replay").addEventListener("click", play);
+document.getElementById("loop").addEventListener("click", e => {
+  loopOn = !loopOn;
+  e.currentTarget.setAttribute("aria-pressed", String(loopOn));
+  play();
+});
+document.getElementById("cleanBtn").addEventListener("click", toggleClean);
+
+function toggleClean(){
+  document.body.classList.toggle("clean");
+  fit();
+}
+
+addEventListener("keydown", e => {
+  if (e.key === "r" || e.key === "R") play();
+  else if (e.key === "c" || e.key === "C") toggleClean();
+  else if (e.key === "1" || e.key === "2" || e.key === "3")
+    document.querySelectorAll("[data-fmt]")[+e.key - 1].click();
+});
+addEventListener("resize", fit);
+
+/* ---------- Start ---------- */
+const params = new URLSearchParams(location.search);
+if (params.has("clean")) document.body.classList.add("clean");
+if (params.has("format") && FORMATS[params.get("format")]){
+  fmt = params.get("format");
+  document.querySelectorAll("[data-fmt]").forEach(o =>
+    o.setAttribute("aria-pressed", String(o.dataset.fmt === fmt)));
+}
+if (params.has("loop")){
+  loopOn = true;
+  document.getElementById("loop").setAttribute("aria-pressed", "true");
+}
+build();
+play();
+</script>
+</body>
+</html>
