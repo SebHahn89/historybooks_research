@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Frankfurt-Outro Frameboards</title>
+<style>
+:root{
+  --navy:#16325C;
+  --night:#0D2547;
+  --paper:#F1F1EF;
+  --ink:#1E1E1E;
+  --orange:#F0A32A;      /* CI-Orange - Hexwert noch zu bestaetigen */
+  --orange-dk:#C97F14;
+  --white:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--night);
+  color:var(--paper);
+  font-family:"Liberation Sans",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.board{width:1860px;padding:52px 56px 44px;background:var(--night)}
+
+/* ---- Kopf ---- */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-bottom:34px}
+.eyebrow{font-size:15px;letter-spacing:3.4px;text-transform:uppercase;color:rgba(241,241,239,.55)}
+.h1{font-size:44px;font-weight:700;letter-spacing:-.6px;margin-top:10px}
+.h1 em{font-style:normal;color:var(--orange)}
+.sub{font-size:18px;color:rgba(241,241,239,.72);margin-top:10px;max-width:900px;line-height:1.5}
+.meta{text-align:right;font-size:14px;line-height:1.85;color:rgba(241,241,239,.6);white-space:nowrap}
+.meta b{color:var(--paper);font-weight:600}
+.variant{
+  display:inline-block;margin-top:12px;padding:7px 16px;border-radius:999px;
+  background:var(--orange);color:#1a1204;font-size:14px;font-weight:700;letter-spacing:1.6px;
+}
+
+/* ---- Raster ---- */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.cell{background:#122b50;border:1px solid rgba(241,241,239,.09);border-radius:10px;overflow:hidden}
+.shot{position:relative;aspect-ratio:9/16;background:var(--paper);overflow:hidden}
+.shot svg{display:block;width:100%;height:100%}
+.badge{
+  position:absolute;top:14px;left:14px;width:34px;height:34px;border-radius:50%;
+  background:var(--orange);color:#1a1204;font-size:17px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(0,0,0,.35);
+}
+.tc{
+  position:absolute;top:14px;right:14px;padding:6px 12px;border-radius:7px;
+  background:rgba(13,37,71,.92);color:var(--paper);font-size:14px;font-weight:600;letter-spacing:.4px;
+}
+.zoomtag{
+  position:absolute;bottom:14px;left:14px;padding:5px 11px;border-radius:6px;
+  background:rgba(13,37,71,.82);color:var(--paper);font-size:12.5px;letter-spacing:1.3px;font-weight:600;
+}
+.note{padding:17px 18px 19px}
+.note .title{font-size:15.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--orange);margin-bottom:11px}
+.note dl{display:grid;grid-template-columns:82px 1fr;gap:7px 12px}
+.note dt{font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(241,241,239,.45);padding-top:2px}
+.note dd{font-size:14px;line-height:1.5;color:rgba(241,241,239,.9)}
+
+/* ---- Zeitleiste ---- */
+.timeline{margin-top:34px;padding:24px 30px 22px;background:#0a1d38;border-radius:10px}
+.track{position:relative;height:3px;background:rgba(240,163,42,.28);border-radius:2px;margin:0 26px 20px}
+.track i{position:absolute;top:-4.5px;width:12px;height:12px;border-radius:50%;background:var(--orange);transform:translateX(-50%)}
+.ticks{display:grid;grid-template-columns:repeat(6,1fr);text-align:center}
+.ticks div{font-size:13px;line-height:1.75}
+.ticks .t{color:var(--paper);font-weight:700;letter-spacing:.3px}
+.ticks .l{color:rgba(241,241,239,.55);font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase}
+.foot{margin-top:22px;display:flex;justify-content:space-between;font-size:12.5px;color:rgba(241,241,239,.42);letter-spacing:.6px}
+</style>
+</head>
+<body>
+<div id="out"></div>
+
+<script>
+/* =============================================================
+   Frankfurt-Outro - Frameboards
+   18 Frames, drei Abschnitte zu je 3x2 Frames.
+   Variante V2: Paper-Cutout (keine 3D-Modelle noetig).
+   Weltkoordinaten der Komposition: 1080 x 1920 (9:16).
+   ============================================================= */
+
+const C = {
+  navy:"#16325C", night:"#0D2547", paper:"#F1F1EF", ink:"#1E1E1E",
+  orange:"#F0A32A", orangeDk:"#C97F14", tan:"#C9915A", tanDk:"#A06E3C",
+  glass:"#DCE4E8", glassDk:"#B9C7CF", cider:"#E39B22", ciderDk:"#C07B10"
+};
+
+/* ---- Buchstabenpositionen in Weltkoordinaten ---- */
+const FS = 300;                                  // Schriftgroesse der Zeilen
+const L1 = { y:760,  chars:[["F",90],["R",300],["A",512]] };
+const L2 = { y:1075, chars:[["N",430],["K",645]] };          // nach rechts eingerueckt
+const L3 = { y:1390, chars:[["F",90],["U",298],["R",505],["T",712]] };
+
+/* ---- Szene ---- */
+function scene(s){
+  const g = [];
+
+  // Papiergrund + Struktur
+  g.push(`<rect x="-400" y="-400" width="1880" height="2720" fill="${C.paper}"/>`);
+  g.push(`<rect x="-400" y="-400" width="1880" height="2720" fill="url(#grain)" opacity=".5"/>`);
+
+  // Ausgeschnittene Farbflaechen (Cutout-Ebenen, leicht gedreht)
+  if (s.panels !== false){
+    g.push(`<g filter="url(#ps)">
+      <rect x="52" y="470" width="980" height="1085" rx="6" fill="#E4E6E2" transform="rotate(-1.1 540 1010)"/>
+    </g>`);
+    g.push(`<g filter="url(#ps)" opacity="${s.accent ?? 1}">
+      <rect x="762" y="612" width="196" height="46" fill="${C.orange}" transform="rotate(-1.1 860 635)"/>
+      <rect x="120" y="1600" width="330" height="16" fill="${C.navy}" transform="rotate(-1.1 285 1608)"/>
+      <circle cx="905" cy="1330" r="27" fill="${C.orange}"/>
+      <rect x="118" y="352" width="128" height="9" fill="${C.orange}"/>
+    </g>`);
+  }
+
+  // Logo-Platzhalter
+  if (s.logo > 0){
+    g.push(`<g opacity="${s.logo}" filter="url(#ps)" transform="translate(540 208) scale(${0.86 + s.logo*.06})">
+      <path d="M-232 34 C-150 -34 -46 -52 46 -30 C132 -10 190 22 236 4"
+            fill="none" stroke="${C.navy}" stroke-width="26" stroke-linecap="round"/>
+      <path d="M-206 74 C-120 22 -10 8 96 30 C160 43 196 58 224 50"
+            fill="none" stroke="${C.orange}" stroke-width="13" stroke-linecap="round"/>
+      <text x="0" y="106" text-anchor="middle" font-size="26" letter-spacing="7"
+            fill="${C.navy}" opacity=".5">PLATZHALTER / Group 77.svg</text>
+    </g>`);
+  }
+
+  // Typografie - Buchstaben einzeln, mit Papierversatz
+  const line = (L, hidden, shift) => L.chars.forEach(([ch, x], i) => {
+    const key = L.key + i;
+    if (hidden && hidden.includes(key)) return;
+    const col = (s.colors && s.colors[key]) === "o" ? C.orange : C.navy;
+    const dy  = (s.jitter && s.jitter[key]) || 0;
+    g.push(`<g transform="translate(${x + (shift||0)} ${L.y + dy})">
+      <text x="7" y="11" font-size="${FS}" font-weight="700" font-family="Liberation Sans,Helvetica,Arial"
+            fill="${C.navy}" opacity=".16">${ch}</text>
+      <text x="0" y="0"  font-size="${FS}" font-weight="700" font-family="Liberation Sans,Helvetica,Arial"
+            fill="${col}">${ch}</text>
+    </g>`);
+  });
+  L1.key = "1"; L2.key = "2"; L3.key = "3";
+  if (s.l1 !== false) line(L1, s.hidden, 0);
+  if (s.l2 !== false) line(L2, s.hidden, s.shift2 || 0);
+  if (s.l3 !== false) line(L3, s.hidden, 0);
+
+  // Objekte
+  if (s.tower  > 0) g.push(tower(s.tower,  s.towerR  || 0));
+  if (s.goose  > 0) g.push(goose(s.goose,  s.gooseR  || 0));
+  if (s.glass  > 0) g.push(glass(s.glass,  s.glassR  || 0));
+
+  return g.join("");
+}
+
+/* --- Messeturmspitze: ersetzt das A --- */
+function tower(op, rot){
+  return `<g opacity="${op}" filter="url(#ps)" transform="translate(614 690) rotate(${rot}) translate(-614 -690)">
+    <polygon points="614,436 700,634 528,634" fill="${C.navy}"/>
+    <polygon points="614,436 700,634 614,634" fill="#20437A"/>
+    <rect x="528" y="634" width="172" height="182" fill="${C.navy}"/>
+    <rect x="614" y="634" width="86"  height="182" fill="#20437A"/>
+    <rect x="528" y="676" width="172" height="7" fill="${C.paper}" opacity=".55"/>
+    <rect x="528" y="726" width="172" height="7" fill="${C.paper}" opacity=".55"/>
+    <rect x="528" y="776" width="172" height="7" fill="${C.paper}" opacity=".55"/>
+    <rect x="610" y="384" width="8" height="56" fill="${C.navy}"/>
+    <circle cx="614" cy="378" r="13" fill="${C.orange}"/>
+  </g>`;
+}
+
+/* --- Nilgans: steht links neben dem N, ersetzt keinen Buchstaben --- */
+function goose(op, rot){
+  return `<g opacity="${op}" filter="url(#ps)" transform="translate(280 985) rotate(${rot}) translate(-280 -985)">
+    <ellipse cx="296" cy="1032" rx="116" ry="68" fill="${C.tan}"/>
+    <path d="M338 992 C388 1004 408 1042 388 1078 C368 1112 322 1112 296 1090 Z" fill="${C.tanDk}"/>
+    <ellipse cx="232" cy="1046" rx="34" ry="22" fill="${C.tanDk}" opacity=".55"/>
+    <path d="M244 1000 C224 940 216 878 234 838 C246 812 268 806 278 820
+             C288 834 280 852 268 872 C250 902 246 946 262 990 Z" fill="${C.tan}"/>
+    <ellipse cx="256" cy="826" rx="31" ry="27" fill="${C.tan}"/>
+    <circle cx="248" cy="822" r="16" fill="${C.orangeDk}"/>
+    <circle cx="246" cy="820" r="7"  fill="${C.ink}"/>
+    <path d="M226 828 L180 838 L226 852 Z" fill="${C.orange}"/>
+    <rect x="272" y="1092" width="12" height="48" fill="${C.orange}"/>
+    <rect x="318" y="1092" width="12" height="48" fill="${C.orange}"/>
+    <path d="M266 1140 L304 1140 L296 1154 L258 1154 Z" fill="${C.orange}"/>
+    <path d="M312 1140 L350 1140 L342 1154 L304 1154 Z" fill="${C.orange}"/>
+  </g>`;
+}
+
+/* --- Geripptes mit Apfelwein: ersetzt das U --- */
+function glass(op, rot){
+  const lat = [];
+  for (let r = 0; r < 5; r++)
+    for (let c = 0; c < 4; c++){
+      const x = 322 + c*46 + (r % 2 ? 23 : 0), y = 1200 + r*46;
+      lat.push(`<path d="M${x} ${y-17} L${x+17} ${y} L${x} ${y+17} L${x-17} ${y} Z"
+        fill="none" stroke="${C.ciderDk}" stroke-width="3.4" opacity=".55"/>`);
+    }
+  return `<g opacity="${op}" filter="url(#ps)" transform="translate(400 1290) rotate(${rot}) translate(-400 -1290)">
+    <path d="M312 1148 L488 1148 L466 1430 L334 1430 Z" fill="${C.glass}"/>
+    <path d="M318 1186 L482 1186 L464 1424 L336 1424 Z" fill="${C.cider}"/>
+    <clipPath id="cl"><path d="M318 1186 L482 1186 L464 1424 L336 1424 Z"/></clipPath>
+    <g clip-path="url(#cl)">${lat.join("")}</g>
+    <rect x="312" y="1148" width="176" height="15" fill="${C.glassDk}"/>
+    <rect x="326" y="1430" width="150" height="17" fill="${C.glassDk}"/>
+    <path d="M334 1196 L352 1196 L342 1414 L326 1414 Z" fill="#FFFFFF" opacity=".34"/>
+  </g>`;
+}
+
+/* =============================================================
+   18 Frames
+   ============================================================= */
+const F = [
+/* --- Abschnitt 01 --- */
+{n:1,t:"0,00 - 0,20 s",z:"ZOOM 360 %",title:"Anschnitt F",
+ cam:[35,394,290,516],
+ st:{l2:false,l3:false,hidden:["11","12"],colors:{10:"n"},logo:0,accent:0},
+ k:"Statisch auf 360 %. Bildmitte auf dem Bauch des F, links und oben angeschnitten.",
+ b:"Nur das F liegt im Bild - als Papierform mit sichtbarer Schnittkante und 7/11 px Versatzschatten.",
+ c:"F in CI-Blau. Noch kein Wechsel."},
+
+{n:2,t:"0,20 - 0,45 s",z:"ZOOM 300 %",title:"R und A setzen ein",
+ cam:[120,332,360,640],
+ st:{l2:false,l3:false,colors:{11:"o"},jitter:{11:-14,12:9},logo:0,accent:0},
+ k:"Zoom faellt in zwei Stufen von 360 auf 300 %, Ankerpunkt bleibt das F.",
+ b:"R und A schieben sich um je 2 Frames versetzt von unten ein und ueberschwingen 14 px, bevor sie einrasten.",
+ c:"R springt fuer 3 Frames auf Orange, F und A bleiben Blau - Wechsel pro Zeichen, nie fuer die ganze Zeile."},
+
+{n:3,t:"0,45 - 0,70 s",z:"ZOOM 250 %",title:"Groesste Nahaufnahme",
+ cam:[128,154,560,996],
+ st:{l2:false,l3:false,colors:{12:"o"},logo:0,accent:.35},
+ k:"Kurzer Halt auf 250 %. Der engste lesbare Zustand des Abbinders - hier sitzt der Auftakt-Akzent.",
+ b:"Alle drei Zeichen ruhen. Nur die orange Papierleiste am rechten Rand faehrt 40 px ein.",
+ c:"A wechselt auf Orange, R faellt auf Blau zurueck. Ein Zeichen orange pro Beat."},
+
+{n:4,t:"0,70 - 1,10 s",z:"ZOOM 250 → 150 %",title:"Zoom-out, NK tritt ein",
+ cam:[50,89,800,1422],
+ st:{l3:false,shift2:52,colors:{20:"o"},jitter:{20:-20},logo:0,accent:.6},
+ k:"Schneller Zoom-out ueber 12 Frames, zuegig heraus und praezise abgebremst. Kein gleichmaessiges Gleiten.",
+ b:"NK kommt bereits eingerueckt herein und schiebt sich in den letzten 4 Frames noch 52 px nach links an seine Position.",
+ c:"N orange beim Eintritt, danach zurueck auf Blau."},
+
+{n:5,t:"1,10 - 1,45 s",z:"ZOOM 130 %",title:"FURT setzt unten an",
+ cam:[-10,61,1000,1778],
+ st:{colors:{31:"o",21:"o"},jitter:{30:12,31:16,32:12,33:8},logo:0,accent:.85},
+ k:"Zoom laeuft auf 130 % aus, Blickpunkt wandert 90 px nach unten zur dritten Zeile.",
+ b:"FURT laeuft von links nach rechts mit 2 Frames Versatz ein; jeder Buchstabe federt einmal um 12-16 px nach.",
+ c:"U und K kurz orange. Nie mehr als zwei Zeichen gleichzeitig."},
+
+{n:6,t:"1,45 - 1,80 s",z:"ZOOM 100 %",title:"Wortkomposition steht",
+ cam:[0,0,1080,1920],
+ st:{colors:{},logo:0,accent:1},
+ k:"Ruhepunkt auf 100 %. Erste vollstaendige Ansicht - acht Frames ohne Kamerabewegung.",
+ b:"Alle Zeilen stehen. Nur die Cutout-Ebenen atmen minimal (±0,4°), damit das Bild nicht einfriert.",
+ c:"Alle Zeichen Blau. Bewusste Farbpause vor dem Objekteinsatz."},
+
+/* --- Abschnitt 02 --- */
+{n:7,t:"1,80 - 2,05 s",z:"ZOOM 108 %",title:"Messeturmspitze kommt",
+ cam:[36,64,1008,1792],
+ st:{tower:.55,towerR:-13,colors:{12:"o"},logo:0,accent:1},
+ k:"Leichter Push-in auf 108 %, Ankerpunkt auf dem A.",
+ b:"Die Spitze faehrt als eigene Papierebene von oben rechts ein, um -13° gekippt, und legt sich VOR das A. Ihr Schlagschatten wandert dabei ueber den Buchstaben.",
+ c:"A leuchtet einmal orange auf, waehrend es verdeckt wird - die Uebergabe wird farblich markiert."},
+
+{n:8,t:"2,05 - 2,35 s",z:"ZOOM 108 %",title:"A ist ersetzt, Spitze kippt",
+ cam:[36,64,1008,1792],
+ st:{tower:1,towerR:5,hidden:["12"],logo:0,accent:1},
+ k:"Kamera haelt. Die Bewegung kommt allein aus dem Objekt.",
+ b:"Die Spitze kippt von -13° auf +5° und schiebt ihre helle Flanke sichtbar um. Kein Rotieren in der Bildebene: die beleuchtete Seite und die Schattenkante tauschen die Rolle.",
+ c:"Blau bleibt. Nur der orange Antennenpunkt setzt einen Akzent."},
+
+{n:9,t:"2,35 - 2,60 s",z:"ZOOM 104 %",title:"Nilgans tritt ein",
+ cam:[22,38,1036,1842],
+ st:{tower:1,towerR:3,hidden:["12"],goose:.6,gooseR:-7,colors:{20:"o"},logo:0,accent:1},
+ k:"Kamera zieht 4 % zurueck und macht links Platz.",
+ b:"Die Gans laeuft von links ins Bild und bremst mit leichtem Nachlauf des Halses ab. Sie steht NEBEN dem N und verdeckt es nie.",
+ c:"N kurz orange als Begruessung. Schnabel, Beine und Augenfleck tragen das Orange dauerhaft."},
+
+{n:10,t:"2,60 - 2,95 s",z:"ZOOM 104 %",title:"Gans dreht sich",
+ cam:[22,38,1036,1842],
+ st:{tower:1,towerR:-2,goose:1,gooseR:6,hidden:["12"],logo:0,accent:1},
+ k:"Kamera haelt. Zwei Objekte bewegen sich gleichzeitig, aber nicht synchron.",
+ b:"Die Gans dreht ueber 10 Frames um +6°, der Kopf zieht 3 Frames nach. Die Turmspitze laeuft gegenlaeufig zurueck auf -2°.",
+ c:"Keine Buchstabenwechsel - die Aufmerksamkeit liegt auf der Bewegung."},
+
+{n:11,t:"2,95 - 3,30 s",z:"ZOOM 100 %",title:"Geripptes uebernimmt das U",
+ cam:[0,0,1080,1920],
+ st:{tower:1,towerR:0,goose:1,gooseR:3,hidden:["12","31"],glass:1,glassR:-8,colors:{31:"o"},logo:0,accent:1},
+ k:"Zurueck auf 100 %. Alle drei Objekte sind im Bild.",
+ b:"Das Glas schiebt sich von unten ueber das U und kippt von -8° in die Senkrechte. Die Apfelweinflaeche bleibt waagerecht stehen, waehrend das Glas kippt - daran wird die Drehung lesbar.",
+ c:"Der Apfelwein bringt das groesste Orangefeld der Sequenz. Rautenrelief bleibt sichtbar."},
+
+{n:12,t:"3,30 - 4,00 s",z:"ZOOM 98 %",title:"Alle Objekte gesetzt",
+ cam:[-11,-19,1102,1958],
+ st:{tower:1,towerR:2,goose:1,gooseR:-3,glass:1,glassR:3,hidden:["12","31"],colors:{33:"o"},logo:0,accent:1},
+ k:"Ganz leichter Pull-back auf 98 %, damit die Raender frei bleiben.",
+ b:"Kurzer Gegen-Impuls: alle drei Objekte kippen einmal in die Gegenrichtung und beruhigen sich mit unterschiedlicher Daempfung. Keine gemeinsame Kurve.",
+ c:"T setzt den letzten kraeftigen Orange-Akzent des Mittelteils."},
+
+/* --- Abschnitt 03 --- */
+{n:13,t:"4,00 - 4,30 s",z:"ZOOM 98 %",title:"Restbewegung",
+ cam:[-11,-19,1102,1958],
+ st:{tower:1,towerR:-1,goose:1,gooseR:2,glass:1,glassR:-1,hidden:["12","31"],logo:0,accent:1},
+ k:"Kamera steht.",
+ b:"Nur noch Mikrobewegung: Objekte unter 3°, Papierebenen unter 0,5°. Genug, damit das Bild lebt, zu wenig, um abzulenken.",
+ c:"Alle Zeichen Blau."},
+
+{n:14,t:"4,30 - 4,70 s",z:"ZOOM 94 %",title:"Rand wird sichtbar",
+ cam:[-32,-58,1144,2034],
+ st:{tower:1,towerR:1,goose:1,gooseR:-1,glass:1,glassR:1,hidden:["12","31"],logo:0,accent:1},
+ k:"Weicher Pull-back auf 94 %. Die Cutout-Kanten und der Papiergrund treten in den Blick.",
+ b:"Der Zug ist langsam und gleichmaessig - der bewusste Gegensatz zum harten Zoom-out aus Frame 4.",
+ c:"Unveraendert."},
+
+{n:15,t:"4,70 - 5,10 s",z:"ZOOM 94 %",title:"Logo blendet ein",
+ cam:[-32,-58,1144,2034],
+ st:{tower:1,goose:1,glass:1,hidden:["12","31"],logo:.55,logoY:-24,accent:1},
+ k:"Kamera haelt auf 94 %. Der obere Bildbereich war seit Frame 14 bewusst frei.",
+ b:"Das Original-Logo faehrt 24 px von oben ein und blendet ueber 8 Frames auf. Keine Skalierung, keine Rotation - es ist der ruhende Pol.",
+ c:"Logo in Originalfarbe, nicht neu eingefaerbt."},
+
+{n:16,t:"5,10 - 5,50 s",z:"ZOOM 94 %",title:"Letzte Farbstufe",
+ cam:[-32,-58,1144,2034],
+ st:{tower:1,goose:1,glass:1,hidden:["12","31"],logo:1,colors:{10:"o",30:"o"},accent:1},
+ k:"Statisch.",
+ b:"Nur noch die Schrift arbeitet: ein kurzer, letzter Blau-Orange-Durchlauf ueber einzelne Zeichen.",
+ c:"Beide F gleichzeitig orange - der einzige Moment, in dem zwei Zeichen bewusst gekoppelt sind."},
+
+{n:17,t:"5,50 - 6,10 s",z:"ZOOM 94 %",title:"Schlussbild",
+ cam:[-32,-58,1144,2034],
+ st:{tower:1,goose:1,glass:1,hidden:["12","31"],logo:1,accent:1},
+ k:"Statisch. 18 Frames vollstaendige Ruhe - die laengste Standzeit der Sequenz.",
+ b:"Alles steht. Nur die Objekte behalten eine kaum messbare Restdrift unter 1°.",
+ c:"Alle Zeichen Blau, Objekte tragen das Orange. Lesbarkeit hat Vorrang."},
+
+{n:18,t:"6,10 - 6,50 s",z:"ZOOM 94 %",title:"Halt / Loop-Punkt",
+ cam:[-32,-58,1144,2034],
+ st:{tower:1,goose:1,glass:1,hidden:["12","31"],logo:1,accent:1},
+ k:"Statisch. Uebergabepunkt fuer den Schnitt.",
+ b:"Zustand identisch zu Frame 17 - dieser Block ist der Puffer fuer Reel-Bedienflaechen und einen sauberen Loop-Anschluss.",
+ c:"Unveraendert."}
+];
+
+const SECTIONS = [
+  { no:"01", name:"Typografischer Auftakt",  range:"0,00 - 1,80 s",
+    lead:"Enger Einstieg auf FRA, gestufter Zoom-out, versetzter Aufbau der drei Zeilen.",
+    trans:["ANSCHNITT","STUFE 1","HALT","ZOOM-OUT","EINLAUF","RUHE"] },
+  { no:"02", name:"Objekte uebernehmen",     range:"1,80 - 4,00 s",
+    lead:"Messeturmspitze, Nilgans und Geripptes treten versetzt ein und tragen den Rhythmus.",
+    trans:["EINTRITT","KIPPUNG","EINTRITT","DREHUNG","UEBERGABE","GEGENIMPULS"] },
+  { no:"03", name:"Beruhigung und Schluss",  range:"4,00 - 6,50 s",
+    lead:"Restbewegung, langsamer Pull-back, Logo und lesbares Schlussbild.",
+    trans:["MIKROBEWEGUNG","PULL-BACK","LOGO","FARBSTUFE","SCHLUSSBILD","HALT"] }
+];
+
+/* ---- Rendern ---- */
+const DEFS = `<defs>
+  <filter id="ps" x="-30%" y="-30%" width="180%" height="180%">
+    <feDropShadow dx="7" dy="12" stdDeviation="7" flood-color="#16325C" flood-opacity=".2"/>
+  </filter>
+  <pattern id="grain" width="7" height="7" patternUnits="userSpaceOnUse">
+    <circle cx="1.6" cy="1.6" r=".8" fill="#16325C" opacity=".07"/>
+    <circle cx="5.1" cy="4.4" r=".6" fill="#16325C" opacity=".05"/>
+  </pattern>
+</defs>`;
+
+function cell(f){
+  const vb = f.cam.join(" ");
+  return `<div class="cell">
+    <div class="shot">
+      <svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice">${DEFS}${scene(f.st)}</svg>
+      <span class="badge">${f.n}</span>
+      <span class="tc">${f.t}</span>
+      <span class="zoomtag">${f.z}</span>
+    </div>
+    <div class="note">
+      <div class="title">${f.title}</div>
+      <dl>
+        <dt>Kamera</dt><dd>${f.k}</dd>
+        <dt>Bewegung</dt><dd>${f.b}</dd>
+        <dt>Farbe</dt><dd>${f.c}</dd>
+      </dl>
+    </div>
+  </div>`;
+}
+
+function board(i){
+  const s = SECTIONS[i], fr = F.slice(i*6, i*6+6);
+  const dots = fr.map((_,j) => `<i style="left:${(j*100/5).toFixed(2)}%"></i>`).join("");
+  const ticks = fr.map((f,j) =>
+    `<div><div class="t">${f.t}</div><div class="l">${s.trans[j]}</div></div>`).join("");
+  return `<div class="board" id="board${i+1}">
+    <div class="head">
+      <div>
+        <div class="eyebrow">Damals in Farbe / Frankfurt-Abbinder / Frameboard ${i+1} von 3</div>
+        <div class="h1">${s.no} <em>/</em> ${s.name}</div>
+        <div class="sub">${s.lead}</div>
+      </div>
+      <div class="meta">
+        <div><b>${s.range}</b></div>
+        <div>6 Frames &middot; 1080 &times; 1920 &middot; 30 fps</div>
+        <div>Frames ${i*6+1}-${i*6+6} von 18</div>
+        <div><span class="variant">V2 &middot; PAPER CUTOUT</span></div>
+      </div>
+    </div>
+    <div class="grid">${fr.map(cell).join("")}</div>
+    <div class="timeline">
+      <div class="track">${dots}</div>
+      <div class="ticks">${ticks}</div>
+    </div>
+    <div class="foot">
+      <span>Storyboard-Mock, kein Renderframe. Schrift im Mock: Liberation Sans - final Montserrat ExtraBold.</span>
+      <span>Blau #16325C &middot; Orange #F0A32A (zu bestaetigen) &middot; Papier #F1F1EF</span>
+    </div>
+  </div>`;
+}
+
+const which = new URLSearchParams(location.search).get("board");
+document.getElementById("out").innerHTML =
+  which ? board(+which - 1) : [0,1,2].map(board).join("");
+</script>
+</body>
+</html>
