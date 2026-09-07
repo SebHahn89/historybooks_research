@@ -106,50 +106,97 @@ Nicht wieder auf die frühere Idee „Bembel statt B" zurückfallen.
 
 ### Design-System
 
-Sebastian hat das Design-System inklusive Logo als Claude-Design-Projekt
-bereitgestellt:
+Sebastian hat das Design-System als gebündelte HTML-Datei geliefert
+(`Damals_in_Farbe_Carousel.html`). Sie ist auspackbar: Farbtokens, Typo-Tokens,
+Slide-Geometrie, fünf München-Fotos und die Montserrat-Schriftdateien liegen
+darin. Übernommen ins Projekt:
 
-<https://claude.ai/design/p/90e16a7e-6569-4789-a96b-e6a70b26a5fe?via=share>
+```
+frankfurt-outro/assets/fonts/montserrat-latin.woff2       Montserrat variabel, 100-900
+frankfurt-outro/assets/fonts/montserrat-latin-ext.woff2   dito, erweitertes Latein
+frankfurt-outro/assets/images/muenchen-*.png              5 München-Fotos, je 1080 px breit
+```
 
-**Offener Punkt:** Diese Adresse ist aus einer Claude-Code-Sitzung heraus nicht
-lesbar — der Abruf endet mit HTTP 403, weil die Seite eine angemeldete Sitzung
-verlangt. Vor der Produktion müssen daher noch beschafft werden:
+Das früher genannte Claude-Design-Projekt
+(<https://claude.ai/design/p/90e16a7e-6569-4789-a96b-e6a70b26a5fe>) ist aus
+einer Claude-Code-Sitzung heraus weiterhin nicht lesbar (HTTP 403). Es wird
+nicht mehr gebraucht — die HTML-Datei enthält dieselben Tokens.
 
-- der **exakte Hexwert des CI-Orange**,
-- die **Logodatei** als SVG,
-- die **Schriftdateien** (Montserrat-Schnitte) oder die Bestätigung, dass die
-  Schrift über eine Web-Quelle eingebunden werden darf.
+### ⚠️ Offener Punkt: Es gibt kein Orange im Corporate Design
 
-Bis dahin gilt der unten dokumentierte Platzhalter. Farbwerte nicht aus
-Screenshots schätzen und dann als CI-Wert ausgeben.
+Das gelieferte Design-System definiert genau **sechs Markenfarben** (Figma
+Variable Collection „Damals in Farbe · Farben"):
 
-### Farbtokens
-
-| Token | Hexwert | Verwendung |
+| Token | Hexwert | Verwendung laut System |
 |---|---|---|
-| navy | `#16325C` | CI-Blau / Typografie |
-| night | `#0D2547` | dunkler Hintergrund, Frameboards |
-| paper | `#F1F1EF` | heller Hintergrund, Papiergrund |
-| ink | `#1E1E1E` | dunkler Text |
-| **orange** | **`#F0A32A`** ⚠️ Platzhalter | **CI-Akzent, ersetzt Gold** |
+| navy | `#16325C` | Headline auf hellem Foto |
+| night | `#0D2547` | dunkelblaue Fläche |
+| paper | `#F1F1EF` | heller Papier-Hintergrund |
+| ink | `#1E1E1E` | Schrift auf Papier |
+| **gold** | **`#E9C993`** | **Akzent Outro** |
 | white | `#FFFFFF` | Weiß |
 
-⚠️ `#F0A32A` ist aus dem von Sebastian gelieferten München-Frameboard
-abgeleitet (Badges und Button) und **nicht bestätigt**. Sobald der Wert aus dem
-Design-System vorliegt, an einer Stelle austauschen — er steht in allen Dateien
-als CSS-Variable `--orange`.
+Ein Orange ist darin **nicht enthalten** — auch nicht in den
+Dokumentationsfarben (dort nur `--gold-deep #A8853D` und `--green #296B47`).
+Die Anweisung „statt dem Gold in der CI das Orange" führt also keine
+vorhandene CI-Farbe ein, sondern **ersetzt die einzige Akzentfarbe des Systems
+durch eine neue**. Das ist eine Markenentscheidung, keine Umsetzungsdetail —
+und sie sollte bewusst getroffen werden, weil `gold` im System ausdrücklich als
+„Akzent Outro" geführt wird, also genau für diesen Anwendungsfall.
 
-**Gold ist raus.** Weder `#E9C993` (Kit-Gold) noch `#FFE395` (Logo-Gold) werden
-im Abbinder als Akzentfarbe verwendet. Zwei Folgen daraus:
+Der in den Frameboards verwendete Wert `#F0A32A` stammt **nicht** aus dem
+Design-System. Er ist aus den Badges und dem Button des gelieferten
+München-Frameboards abgeleitet und damit eine Schätzung. Vor der Produktion
+ist zu klären:
 
-- Die Buchstabenwechsel laufen zwischen `navy` und `orange`.
-- Das Logo behält seinen Originalzustand. Es wird **nicht** auf Orange
-  umgefärbt. Falls Sebastian eine orange Logofassung wünscht, ist das eine
-  eigene Entscheidung und keine stillschweigende Anpassung.
+1. Wo kommt das Orange her — gibt es eine Quelle, die ich noch nicht kenne?
+2. Wird `gold` im Design-System ersetzt, oder bekommt der Abbinder eine
+   Sonderfarbe, die im übrigen Kit weiter Gold bleibt?
+3. Der exakte Hexwert.
 
-Der Orange-Blau-Kontrast ist deutlich kräftiger als Gold-Blau. Das ist
-erwünscht, verlangt aber Zurückhaltung: höchstens ein bis zwei Zeichen
-gleichzeitig orange, sonst kippt die Komposition ins Grelle.
+Bis dahin steht `#F0A32A` in allen Dateien als CSS-Variable `--orange` und ist
+an einer Stelle austauschbar. **Nicht als CI-Farbe ausgeben, solange das nicht
+bestätigt ist.**
+
+### Typografie
+
+Montserrat liegt jetzt als echte Schriftdatei vor, nicht mehr als Ersatz. Die
+Tokens des Systems, soweit für den Abbinder relevant:
+
+| Token | Wert |
+|---|---|
+| Schnitte | 300 Light, 500 Medium, 600 SemiBold, 700 Bold, 800 ExtraBold |
+| Outro/Headline | 66 px, ExtraBold, Zeilenhöhe 1,19, Tracking 0,01 em |
+| Cover/Headline | 72 px, ExtraBold, Zeilenhöhe 1,13, Tracking 0,005 em |
+| Stack/Heavy | 82 px, ExtraBold, Zeilenhöhe 1,114, Tracking 0,02 em |
+| Satzspiegel | Slide 1080 × 1350, Rand 84 px, Spalte 912 px |
+
+Die Frameboards setzen FRA / NK / FURT in Montserrat ExtraBold bei 280 px auf
+1080 px Breite, linker Rand 84 px wie im System. Die Buchstabenpositionen
+werden zur Laufzeit **gemessen**, nicht fest eingetragen — sonst bricht das
+Layout bei jedem Schriftwechsel.
+
+Zu beachten: Das Kit ist auf **1080 × 1350** ausgelegt (Carousel), der Abbinder
+auf **1080 × 1920** (Reel). Die Schriftgrößen des Kits sind daher nicht direkt
+übertragbar, die Proportionen und der Rand schon.
+
+### Bildmaterial
+
+Die fünf Fotos aus dem Bundle sind **München**: `bau1893`, `blaueStunde`,
+`gruenHeute`, `isarHeute`, `muenchen1925`. Sie liegen im Projekt und sind
+einsetzbar — aber nicht für Frankfurt. Für einen Frankfurt-Abbinder werden
+Frankfurt-Motive gebraucht. Zwei Wege:
+
+- Frankfurt-Fotos aus dem Bestand nachliefern, oder
+- den Abbinder ohne Fotos bauen. Der Paper-Cutout-Stil trägt auch ohne
+  Fotomaterial; die Copenhagen-Referenz nutzt Fotos als Collagenebene, das ist
+  für Frankfurt bisher nicht verlangt.
+
+Der Figma-Link auf `History-Books--Copy`, Node `656:15283`, ist über die
+Figma-Anbindung lesbar. Der Knoten ist allerdings ein **Buchsatz-Board**
+(Doppelseiten, Bildunterschriften, Kapitelmarken, 41 000 × 50 500 px), kein
+Storyboard und keine Farbquelle. Falls dort ein bestimmter Frame gemeint war,
+brauche ich den Node dieses Frames.
 
 ### Logo
 
@@ -167,11 +214,8 @@ Logo nicht.
 
 [Damals in Farbe – Social Media Kit](https://www.figma.com/design/0L2ofgcrTLaMcAnbGacyv4/Damals-in-Farbe-%E2%80%93-Social-Media-Kit?node-id=1-3)
 
-Typografie im Kit: Montserrat; große Überschriften unter anderem ExtraBold,
-weitere Schnitte Medium und SemiBold. Die Frankfurt-Typografie nicht frei durch
-irgendeine Systemschrift ersetzen. In den Frameboards ist ersatzweise Liberation
-Sans Bold gesetzt, weil Montserrat in der Arbeitsumgebung nicht vorlag; das ist
-im Fußbereich jedes Boards vermerkt.
+Das Kit bleibt als Referenz relevant; die konkreten Werte stehen inzwischen
+oben unter „Typografie" und stammen direkt aus dem gelieferten Design-System.
 
 Papierstruktur und Materialität passen zur bisherigen Marke — im
 Paper-Cutout-Stil werden sie zum tragenden Prinzip statt zur Dekoration. Auf
@@ -509,9 +553,10 @@ Zustimmung auslösen.
 
 Drei Boards mit 18 Frames, erzeugt aus `storyboard.html` und als PNG gerendert.
 Es sind **Storyboard-Mockups, keine Renderframes** einer laufenden Animation.
-Die Schrift ist Liberation Sans statt Montserrat, das Logo ist ein Platzhalter,
-das Orange ist der ungeprüfte Wert `#F0A32A`. Zoomwerte, Bildausschnitte und
-Objektpositionen sind dagegen belastbar und direkt übernehmbar.
+Schrift ist echtes Montserrat ExtraBold aus dem Design-System, die Farben navy /
+night / paper / ink sind die bestätigten Tokens. Offen bleiben: das Logo (noch
+Platzhalter) und das Orange (`#F0A32A`, ungeprüft — siehe oben). Zoomwerte,
+Bildausschnitte und Objektpositionen sind belastbar und direkt übernehmbar.
 
 ### Frameboards 3D — fehlen
 
@@ -542,7 +587,8 @@ Voraussetzung für den Neuansatz behandeln.
 1. Frameboards beider Varianten, 18 Frames, drei Abschnitte, je 3×2. ✅ für V2,
    ⬜ für 3D
 2. Entscheidung von Sebastian für eine Variante.
-3. Exakter Orange-Hexwert, Logodatei und Schrift aus dem Design-System.
+3. Klärung der Orange-Frage (siehe Abschnitt 4) und die Logodatei
+   `Group 77.svg`. Die Schrift ist beschafft.
 
 ### Stufe 2 — Produktion
 
@@ -599,8 +645,8 @@ Verbindlich bleiben: enger Einstieg auf FRA, Zoom-out auf FRA / eingerücktes NK
 / FURT, einzeln zwischen CI-Blau und **Orange** wechselnde Buchstaben — Gold
 wird nicht mehr verwendet. Das A wird zur Messeturmspitze, links neben N steht
 eine Nilgans, das U wird zu einem mit Apfelwein gefüllten Gerippten. Verwende
-mein originales Logo darüber, unverändert. Hol dir vorher den exakten
-Orange-Hexwert, die Logodatei und die Schrift aus meinem Design-System.
+mein originales Logo darüber, unverändert. Kläre vorher, woher das Orange kommt — mein Design-System kennt
+nur Gold — und hol dir die Logodatei.
 
 Prüfe echte Renderframes und liefere anschließend einen tatsächlich getesteten
 Videoexport. Erfinde keine Raylight-Fähigkeiten.
