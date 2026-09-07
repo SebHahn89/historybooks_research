@@ -10,6 +10,7 @@ Reel-Abbinder für Frankfurt, 9:16, ca. 6,5 s.
 | `storyboard/frameboard-1..3.png` | Die drei Boards, je 3×2 Frames im Hochformat. |
 | `assets/fonts/` | Montserrat (variabel, latin + latin-ext) aus dem Design-System. |
 | `assets/images/` | Fünf München-Fotos aus dem Design-System-Bundle. |
+| `assets/images/frankfurt-sw/` | 34 SW-Archivfotos Frankfurt (Vömel, Schönberger, Stürtz u.a., ca. 1826-1937), siehe QUELLEN.md dort. |
 
 Nicht im Repo: `CopenhagenFramebookRhythmus_2.pdf` (18 MB Referenz-Framebook)
 liegt bei Sebastian.
@@ -22,7 +23,7 @@ liegt bei Sebastian.
   `#F0A32A` ist aus dem München-Frameboard geschätzt und nicht bestätigt.
   Siehe `UEBERGABE-V2.md`, Abschnitt 4.
 - Logodatei `Group 77.svg` (in den Boards noch Platzhalter)
-- Frankfurt-Bildmaterial, falls Fotos eingebunden werden sollen — vorhanden
-  sind nur München-Motive
+- Nutzungsrechte der 34 SW-Archivfotos noch ungeklärt (siehe
+  assets/images/frankfurt-sw/QUELLEN.md)
 - Vergleichssatz Frameboards für die reguläre 3D-Variante
 - Entscheidung V2 (Paper-Cutout) oder 3D
