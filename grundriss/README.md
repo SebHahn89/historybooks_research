@@ -12,7 +12,14 @@ als CAD-Zeichnung, gedacht als Grundlage für den Ausbau.
 | `plaene/OG_Bestand.dxf` | 1. Obergeschoss als CAD-Datei |
 | `plaene/Fachwerkhaus_Bestand_EG_OG.dxf` | Beide Geschosse in einer Datei (OG unter dem EG, gleiche x-Achse) |
 | `plaene/*_1-50_A3.png` | Vorschaubilder |
+| `plaene/EG_3D.glb` | 3D-Modell EG (glTF, Meter), öffnet z. B. mit Windows 3D-Viewer, Blender, SketchUp |
+| `plaene/EG_3D.obj` + `.mtl` | 3D-Modell EG für ältere Programme |
+| `plaene/EG_3D_Viewer.html` | 3D-Modell im Browser: drehen, Schnitthöhe, Ebenen, Räume anfliegen |
+| `plaene/EG_Wandabwicklungen_1-50_A3.pdf` | Wandabwicklungen aller EG-Räume (Übersicht + 1 Blatt je Raum, A3, 1:50) |
+| `plaene/EG_Wandabwicklungen.dxf` | dieselben Abwicklungen als CAD-Datei (cm) |
 | `grundriss.py` | Generator: alle Maße stehen hier als Daten und lassen sich einzeln korrigieren |
+| `hoehen.py` | Höhen für 3D und Abwicklungen (Raumhöhe 235 gemessen, übrige Höhen angenommen) |
+| `modell3d.py`, `abwicklung.py` | erzeugen 3D-Modell bzw. Wandabwicklungen aus Grundriss + Höhen |
 
 ## Arbeits-Prompt (vor Beginn selbst formuliert)
 
@@ -89,11 +96,20 @@ Die vollständige Liste steht im PDF. Am wichtigsten:
 Getestet: `ezdxf` Audit ohne Fehler. Geeignete Programme zum Weiterzeichnen sind z. B. LibreCAD, QCAD,
 FreeCAD, DraftSight, AutoCAD, BricsCAD oder der DXF-Import von ArchiCAD/Vectorworks/SketchUp Pro.
 
+## 3D-Modell und Wandabwicklungen (EG)
+
+- Grundriss aus `grundriss.py`, Höhen aus `hoehen.py`: Raumhöhe **235 cm (gemessen)**; Brüstung 85,
+  Fenstersturz 195, Türhöhe 200, Decke 25 cm sind **Annahmen**, weil der Plan keine Höhen enthält.
+- Treppe: 15 Auftritte lt. Plan, 16 Steigungen bis OG-Fußboden (angenommen).
+- Wandabwicklung: jede Wand von innen gesehen, im Uhrzeigersinn ab der oberen Wand (Planoben), mit
+  Öffnungen, Maßketten und Netto-Wandfläche (ohne Öffnungen, ohne Laibungen). Schornsteinseiten und
+  offene Raumübergänge sind getrennt gekennzeichnet; in Raum 0.06 ist die Treppenlinie eingezeichnet.
+
 ## Neu erzeugen
 
 ```bash
 pip install -r requirements.txt
-python3 grundriss.py
+python3 grundriss.py && python3 modell3d.py && python3 abwicklung.py
 ```
 
 Ein Maß korrigieren (z. B. nach dem Aufmaß vor Ort): Wert in `build_eg()` bzw. `build_og()` ändern und

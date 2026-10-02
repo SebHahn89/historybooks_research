@@ -1,0 +1,257 @@
+<title>Fachwerkhaus EG 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: Arbeitsfläche wie ein Zeichentisch – 3D-Ansicht links, Bedienleiste rechts (mobil darunter) */
+:root {
+  --bg: #e9ebe6;          /* Kalkputz, leicht kühl */
+  --panel: #f6f7f3;
+  --fg: #23251f;
+  --muted: #62665b;
+  --line: #c9ccc2;
+  --accent: #8a2b22;      /* Ochsenblut, klassische Fachwerkfarbe */
+  --accent-fg: #ffffff;
+  --scene: #dfe2dc;
+  --label-bg: rgba(246,247,243,.92);
+  --font-ui: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #191a17; --panel: #22231f; --fg: #e8e9e3; --muted: #a2a597; --line: #3a3c35;
+  --accent: #d47a68; --accent-fg: #1b0e0b; --scene: #262823; --label-bg: rgba(34,35,31,.9); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #191a17; --panel: #22231f; --fg: #e8e9e3; --muted: #a2a597; --line: #3a3c35;
+  --accent: #d47a68; --accent-fg: #1b0e0b; --scene: #262823; --label-bg: rgba(34,35,31,.9); color-scheme: dark }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; }
+.app { height: 100%; display: grid; grid-template-columns: minmax(0,1fr) 320px; grid-template-rows: auto minmax(0,1fr); }
+header { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: .01em; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 13px; }
+.stage { position: relative; min-height: 360px; background: var(--scene); overflow: hidden; }
+canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.lbl { position: absolute; left: 0; top: 0; pointer-events: none; transform: translate(-50%,-50%); background: var(--label-bg); border: 1px solid var(--line); border-radius: 3px; padding: 1px 6px; font: 500 12px/1.4 var(--font-num); color: var(--fg); white-space: nowrap; }
+.lbl small { color: var(--muted); font-weight: 400; }
+.views { position: absolute; left: 12px; top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+button { font: 500 13px var(--font-ui); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+aside { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding: 14px 16px 24px; display: flex; flex-direction: column; gap: 18px; }
+h2 { margin: 0 0 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.cut { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; }
+.cut output { font: 500 14px var(--font-num); font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.layers { display: grid; gap: 6px; }
+.layers label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+td { padding: 5px 4px; border-bottom: 1px solid var(--line); }
+td:last-child { text-align: right; font-family: var(--font-num); font-size: 13px; }
+tr.room { cursor: pointer; }
+tr.room:hover td, tr.room.on td { color: var(--accent); }
+tfoot td { font-weight: 600; border-bottom: 0; }
+.note { font-size: 13px; line-height: 1.5; color: var(--muted); margin: 0; }
+.note b { color: var(--fg); font-weight: 500; }
+.hint { position: absolute; right: 12px; bottom: 10px; font-size: 12px; color: var(--muted); background: var(--label-bg); padding: 2px 8px; border-radius: 3px; }
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0,1fr); grid-template-rows: auto 62vh auto; height: auto; }
+  aside { border-left: 0; border-top: 1px solid var(--line); }
+}
+</style>
+
+<div class="app">
+  <header>
+    <h1>Fachwerkhaus · Erdgeschoss</h1>
+    <p>3D-Modell aus dem Bestandsplan · Grundriss maßgetreu, Raumhöhe gemessen</p>
+  </header>
+  <div class="stage" id="stage">
+    <canvas id="c" aria-label="3D-Ansicht des Erdgeschosses"></canvas>
+    <div class="views" role="group" aria-label="Ansicht">
+      <button id="v-iso" aria-pressed="true">Schräg</button>
+      <button id="v-top" aria-pressed="false">Draufsicht</button>
+      <button id="v-front" aria-pressed="false">Eingangsseite</button>
+      <button id="v-back" aria-pressed="false">Rückseite</button>
+    </div>
+    <div id="labels"></div>
+    <div class="hint">Ziehen: drehen · Rad/Zwei Finger: zoomen · Rechts: schieben</div>
+  </div>
+  <aside>
+    <section>
+      <h2>Schnitthöhe</h2>
+      <div class="cut">
+        <input type="range" id="cut" min="20" max="__H__" step="5" value="__H__" aria-label="Schnitthöhe in cm">
+        <output id="cutv" for="cut">__H__ cm</output>
+      </div>
+    </section>
+    <section>
+      <h2>Ebenen</h2>
+      <div class="layers">
+        <label><input type="checkbox" id="l-Waende" checked> Wände</label>
+        <label><input type="checkbox" id="l-Fenster" checked> Fenster</label>
+        <label><input type="checkbox" id="l-Haustuer" checked> Haustür</label>
+        <label><input type="checkbox" id="l-Schornsteine" checked> Schornsteine</label>
+        <label><input type="checkbox" id="l-Treppe" checked> Treppe</label>
+        <label><input type="checkbox" id="l-Kellerumriss" checked> Kellerumriss (vermutet)</label>
+        <label><input type="checkbox" id="l-labels" checked> Raumnummern</label>
+      </div>
+    </section>
+    <section>
+      <h2>Räume</h2>
+      <table><tbody id="rooms"></tbody><tfoot><tr><td>Summe</td><td id="sum"></td></tr></tfoot></table>
+    </section>
+    <section>
+      <h2>Höhen</h2>
+      <p class="note">Raumhöhe <b>__H__ cm</b> (gemessen). Nicht im Plan und daher angenommen: Brüstung <b>__BR__ cm</b>, Fenstersturz <b>__ST__ cm</b>, Türhöhe <b>__T__ cm</b>. Nach dem Messen wird das Modell neu erzeugt.</p>
+    </section>
+  </aside>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+const GLB = "__GLB__";
+const INFO = __INFO__;
+
+const stage = document.getElementById("stage");
+const canvas = document.getElementById("c");
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.localClippingEnabled = true;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 200);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI * 0.495;
+
+const [x0, y0, x1, y1] = INFO.groesse;          // Grundriss in m
+const cx = (x0 + x1) / 2, cz = -(y0 + y1) / 2;
+const H = INFO.hoehen.raumhoehe / 100;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8478, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.position.set(cx - 6, 12, cz + 9);
+sun.target.position.set(cx, 0, cz);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10, near: 1, far: 40 });
+scene.add(sun, sun.target);
+
+const groundMat = new THREE.ShadowMaterial({ opacity: 0.18 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), groundMat);
+ground.rotation.x = -Math.PI / 2; ground.position.set(cx, -0.021, cz); ground.receiveShadow = true;
+scene.add(ground);
+
+const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), H + 0.01);
+const groups = {};
+const bin = Uint8Array.from(atob(GLB), c => c.charCodeAt(0)).buffer;
+new GLTFLoader().parse(bin, "", gltf => {
+  gltf.scene.traverse(o => {
+    if (!o.isMesh) return;
+    o.castShadow = o.name !== "Fenster";
+    o.receiveShadow = true;
+    o.material.clippingPlanes = [clip];
+    o.material.clipShadows = true;
+    o.material.side = THREE.DoubleSide;
+    if (o.name === "Fenster") o.material.depthWrite = false;
+    groups[o.name] = o;
+  });
+  scene.add(gltf.scene);
+}, err => console.error(err));
+
+// Raumnummern
+const labelBox = document.getElementById("labels");
+const labels = INFO.raeume.map(r => {
+  const d = document.createElement("div");
+  d.className = "lbl";
+  d.innerHTML = `${r.nr} <small>${r.flaeche.toFixed(2).replace(".", ",")} m²</small>`;
+  labelBox.appendChild(d);
+  return { el: d, p: new THREE.Vector3(r.x, 0.05, r.z) };
+});
+const rows = document.getElementById("rooms");
+let sum = 0;
+INFO.raeume.forEach(r => {
+  sum += r.flaeche;
+  const tr = document.createElement("tr");
+  tr.className = "room"; tr.tabIndex = 0;
+  tr.innerHTML = `<td>Raum ${r.nr}</td><td>${r.flaeche.toFixed(2).replace(".", ",")} m²</td>`;
+  const go = () => { document.querySelectorAll("tr.room").forEach(t => t.classList.toggle("on", t === tr)); focusRoom(r); };
+  tr.addEventListener("click", go);
+  tr.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  rows.appendChild(tr);
+});
+document.getElementById("sum").textContent = sum.toFixed(2).replace(".", ",") + " m²";
+
+// Kameraflug
+let anim = null;
+function flyTo(pos, target) {
+  anim = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, s: performance.now(),
+           d: matchMedia("(prefers-reduced-motion: reduce)").matches ? 1 : 700 };
+}
+const VIEWS = {
+  iso:   () => [new THREE.Vector3(cx - 8.5, 10.5, cz + 11), new THREE.Vector3(cx, 0.6, cz)],
+  top:   () => [new THREE.Vector3(cx, 17, cz + 0.01), new THREE.Vector3(cx, 0, cz)],
+  front: () => [new THREE.Vector3(cx, 2.2, cz + 13), new THREE.Vector3(cx, 1.1, cz)],
+  back:  () => [new THREE.Vector3(cx + 1, 2.6, cz - 13), new THREE.Vector3(cx, 1.1, cz)],
+};
+function setView(k) {
+  document.querySelectorAll(".views button").forEach(b => b.setAttribute("aria-pressed", String(b.id === "v-" + k)));
+  const [p, t] = VIEWS[k](); flyTo(p, t);
+}
+function focusRoom(r) {
+  const [a, b, c, d] = r.bbox; const w = Math.max(c - a, d - b);
+  const t = new THREE.Vector3((a + c) / 2, 0.3, -(b + d) / 2);
+  flyTo(new THREE.Vector3(t.x - w * 0.6, w * 1.6 + 2.2, t.z + w * 1.1 + 1.2), t);
+  document.querySelectorAll(".views button").forEach(b => b.setAttribute("aria-pressed", "false"));
+}
+for (const k of Object.keys(VIEWS)) document.getElementById("v-" + k).addEventListener("click", () => setView(k));
+{ const [p, t] = VIEWS.iso(); camera.position.copy(p); controls.target.copy(t); }
+
+// Schnitt und Ebenen
+const cut = document.getElementById("cut"), cutv = document.getElementById("cutv");
+cut.addEventListener("input", () => { clip.constant = cut.value / 100 + 0.001; cutv.textContent = cut.value + " cm"; });
+for (const n of ["Waende", "Fenster", "Haustuer", "Schornsteine", "Treppe", "Kellerumriss"]) {
+  document.getElementById("l-" + n).addEventListener("change", e => { if (groups[n]) groups[n].visible = e.target.checked; });
+}
+document.getElementById("l-labels").addEventListener("change", e => { labelBox.hidden = !e.target.checked; });
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+function applyTheme() { renderer.setClearColor(new THREE.Color(css("--scene") || "#dfe2dc")); }
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+applyTheme(); resize();
+
+const v = new THREE.Vector3();
+renderer.setAnimationLoop(now => {
+  if (anim) {
+    const k = Math.min(1, (now - anim.s) / anim.d), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    camera.position.lerpVectors(anim.p0, anim.p1, e); controls.target.lerpVectors(anim.t0, anim.t1, e);
+    if (k === 1) anim = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  const w = stage.clientWidth, h = stage.clientHeight;
+  const lh = Math.min(clip.constant, H) + 0.12;
+  for (const l of labels) {
+    v.copy(l.p); v.y = lh; v.project(camera);
+    const on = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
+    l.el.style.visibility = on ? "visible" : "hidden";
+    l.el.style.transform = `translate(${(v.x + 1) / 2 * w}px, ${(1 - v.y) / 2 * h}px) translate(-50%,-50%)`;
+  }
+});
+</script>
